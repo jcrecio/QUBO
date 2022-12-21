@@ -21,5 +21,4 @@ public class Onemax implements Problem{
 	public BinaryString generateRandomIndividual(Random rnd) {
 		return new BinaryString(n,rnd);
 	}
-
 }
