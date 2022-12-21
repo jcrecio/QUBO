@@ -14,7 +14,12 @@ public class Main {
 		}
 		
 		int n = Integer.parseInt(args[3]);
-		Problem problem = new Onemax(n);
+		int randomSeed = 0;
+		if (args.length == 5) {
+			randomSeed = Integer.parseInt(args[4]);
+		}
+		
+		Problem problem = new Qubo(n, randomSeed);
 		
 		Map<String, Double> parameters = readEAParameters(args);
 		EvolutionaryAlgorithm evolutionaryAlgorithm = new EvolutionaryAlgorithm(parameters, problem);
