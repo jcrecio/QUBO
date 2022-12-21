@@ -7,18 +7,21 @@ public class Qubo implements Problem {
 	double matrix[][];
 	int n;
 	
-	public Qubo(int n, int seed) {
+	public Qubo(int n, long randomSeed) {
 		this.n = n;
 		this.matrix = new double[n][n];
 		
-		Random random = new Random(seed);
+		Random random = new Random(randomSeed);
 		for(int i = 0; i < n; i++) {
 			for(int j = 0; j < n; j++) {
-				this.matrix[i][j] = random.nextDouble();
+				int multiplier = 1;
+				if (Math.random() < 0.5) multiplier = -1;
+				this.matrix[i][j] = random.nextDouble() * multiplier;
 			}
 		}
 	}
-	
+
+
 	@Override
 	public double evaluate(Individual individual) {
 		BinaryString binaryString = (BinaryString)individual;
