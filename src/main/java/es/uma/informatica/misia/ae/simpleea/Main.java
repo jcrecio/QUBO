@@ -1,7 +1,6 @@
 package es.uma.informatica.misia.ae.simpleea;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,7 +20,7 @@ public class Main {
 		 */
 		if (args.length < 5) {
 			System.err.println("Invalid number of arguments");
-			System.err.println("Arguments: <population size> <function evaluations> <bitflip probability> <problem size> <parameter>");
+			System.err.println("Arguments: <initial population size> <function evaluations> <initial bitflip probability> <problem size> <parameter>");
 			return;
 		}
 		
@@ -73,7 +72,8 @@ public class Main {
 			graphMutation[quboSeed] = avgMutationRate;
 		}
 		
-		plot(graphMutation, graphPopulation);
+		plot(graphPopulation, INSTANCES, "Population", "#66DD66", "Average populations");
+		plot(graphMutation, INSTANCES, "Mutation", "#6688FF", "Average mutations");
 	}
 	
 	private static double[] runExperiment(Problem problem, double[] arguments, long seed, int parameter){
@@ -93,19 +93,25 @@ public class Main {
 		return new double[] {bestMutation, bestPopulation};
 	}
 	
+	/*
+	 * Search Best mutation with fixed population
+	 * Vary mutation rate from 0.1, 0.2... to 0.9
+	 */
 	private static double runMutationExperiment(Problem problem, double[] arguments, long seed) {
-		// Search Best mutation with fixed population
-		// Vary mutation rate from 0.1, 0.2... to 0.9
+		// arguments[0] is fixed population
 		Experiment experimentMutation = 
 				new Experiment("mutation", "population", 0.1, 0.9, 0.1, 2, arguments[0], seed);
 		return experimentMutation.Run(problem, arguments);
 	}
 	
+	/*
+	 * Search Best population with fixed mutation rate
+	 * Vary population from 100, 150, 200, 250... 20000
+	 */
 	private static double runPopulationExperiment(Problem problem, double[] arguments, long seed) {
-		// Search Best population with fixed mutation rate
-		// Vary population from 100, 150, 200, 250... 20000 
+		// arguments[2] is fixed mutation
 		Experiment experimentPopulation = 
-				new Experiment("population", "mutation", 10, 1000, 10, 0, arguments[2], seed);
+				new Experiment("population", "mutation", 10, 1000, 1, 0, arguments[2], seed);
 		return experimentPopulation.Run(problem, arguments);
 	}
 	
@@ -117,33 +123,19 @@ public class Main {
 		return arguments;
 	}
 	
-	private static void plot(double[] mutation, double[] population) {
-//		List<Double> x = NumpyUtils.linspace(10, 1000, 990);
-//		List<Double> y = x.stream()
-//				.map(xi -> mutation[(int) (Math.round(xi)-1)])
-//				.collect(Collectors.toList());
-//
-//		Plot plt = Plot.create();
-//		plt.plot().add(x, y, "o").label("Mutation").color("#66DD66");
-//		plt.legend().loc("upper right");
-//		plt.title("scatter");
-//		try {
-//			plt.show();
-//		} catch (IOException | PythonExecutionException e) {
-//			e.printStackTrace();
-//		}
-//		
-		List<Double> x = NumpyUtils.linspace(1, 10, 10);
+	private static void plot(double[] values, int numInstances,
+			String label, String color,	String title) {
+		List<Double> x = NumpyUtils.linspace(1, numInstances, numInstances);
 		List<Double> y = x.stream()
-				.map(xi -> mutation[(int) (Math.round(xi)-1)])
+				.map(i -> values[(int) (Math.round(i)-1)])
 				.collect(Collectors.toList());
 
-		Plot plt2 = Plot.create();
-		plt2.plot().add(x, y, "o").label("Population").color("#6688FF");
-		plt2.legend().loc("upper right");
-		plt2.title("scatter");
+		Plot plt = Plot.create();
+		plt.plot().add(x, y, "o").label(label).color(color);
+		plt.legend().loc("upper right");
+		plt.title(title);
 		try {
-			plt2.show();
+			plt.show();
 		} catch (IOException | PythonExecutionException e) {
 			e.printStackTrace();
 		}
