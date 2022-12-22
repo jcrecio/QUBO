@@ -7,11 +7,11 @@ public class Qubo implements Problem {
 	double matrix[][];
 	int n;
 	
-	public Qubo(int n, long randomSeed) {
+	public Qubo(int n, long quboCreationSeed) {
 		this.n = n;
 		this.matrix = new double[n][n];
 		
-		Random random = new Random(randomSeed);
+		Random random = new Random(quboCreationSeed);
 		for(int i = 0; i < n; i++) {
 			for(int j = 0; j < n; j++) {
 				int multiplier = 1;

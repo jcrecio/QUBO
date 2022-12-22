@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Experiment {
-	private static boolean enableLogs = true;
+	private static boolean enableLogs = false;
 
 	double lowerBound;
 	double upperBound;
@@ -37,7 +37,7 @@ public class Experiment {
 		if (enableLogs) {
 			System.out.println();
 			System.out.println("****************************************************************");
-			System.out.println("Ejecutando experimento para parámetro " + this.parameterName);
+			System.out.println("Running experiment for parameter" + this.parameterName);
 			System.out.println("****************************************************************");
 			System.out.println();
 		}
@@ -61,13 +61,13 @@ public class Experiment {
 			}
 			
 			if (enableLogs) {
-				System.out.println("Mejor solución al probar '" + this.parameterName +
-						"' con valor = " + i + " y parámetro '" 
-						+ this.fixedParameter + "' fijo con valor " + this.fixedParameterValue + ":");
+				System.out.println("Best solution using '" + this.parameterName +
+						"' with value= " + i + " and parameter'" 
+						+ this.fixedParameter + "' with fixed value " + this.fixedParameterValue + ":");
 				System.out.println(localBestSolution);
 				System.out.println();
-				System.out.println("Mejor parámetro encontrado:" + bestParameter);
-				System.out.println("Mejor fitness encontrado:" + bestFitness);
+				System.out.println("Best parameter found:" + bestParameter);
+				System.out.println("Best fitness found:" + bestFitness);
 				System.out.println();
 				System.out.println("----------------------------------------------------------------");
 			}
