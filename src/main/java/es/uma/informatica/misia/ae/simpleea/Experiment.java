@@ -33,7 +33,7 @@ public class Experiment {
 		return this.bestSolution;
 	}
 	
-	public double Run(Problem problem, double[] arguments) {
+	public ExperimentResult Run(Problem problem, double[] arguments) {
 		if (enableLogs) {
 			System.out.println();
 			System.out.println("****************************************************************");
@@ -73,7 +73,7 @@ public class Experiment {
 			}
 		}
 		
-		return bestParameter;
+		return new ExperimentResult(new double[] {bestParameter}, bestSolution);
 	}
 	
 	private Map<String, Double> mapParameters(double[] args, long randomSeed){

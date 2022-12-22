@@ -15,5 +15,10 @@
 	    <artifactId>matplotlib4j</artifactId>
 	    <version>0.5.0</version>
 	</dependency>
+		<dependency>
+	    <groupId>net.sf.flexjson</groupId>
+	    <artifactId>flexjson</artifactId>
+	    <version>3.3</version>
+	</dependency>
   </dependencies>
 </project>
