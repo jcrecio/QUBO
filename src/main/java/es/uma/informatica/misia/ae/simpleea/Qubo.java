@@ -21,7 +21,6 @@ public class Qubo implements Problem {
 		}
 	}
 
-
 	@Override
 	public double evaluate(Individual individual) {
 		BinaryString binaryString = (BinaryString)individual;
@@ -49,5 +48,4 @@ public class Qubo implements Problem {
 			System.out.println();
 		}
 	}
-
 }

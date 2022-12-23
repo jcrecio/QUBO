@@ -7,6 +7,9 @@ public class InstanceExecutionData {
 	double[] lowerBestPopulation;
 	double[] lowerBestMutation;
 	
+	public InstanceExecutionData() {
+		
+	}
 	public InstanceExecutionData(double[] graphPopulation, double[] graphMutation, 
 			Individual[] solutions) {
 		this.graphMutation = graphMutation;

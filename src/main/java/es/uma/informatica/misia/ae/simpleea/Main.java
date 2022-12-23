@@ -1,7 +1,9 @@
 package es.uma.informatica.misia.ae.simpleea;
 
+import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -9,6 +11,7 @@ import com.github.sh0nk.matplotlib4j.NumpyUtils;
 import com.github.sh0nk.matplotlib4j.Plot;
 import com.github.sh0nk.matplotlib4j.PythonExecutionException;
 
+import flexjson.JSONDeserializer;
 import flexjson.JSONSerializer;
 
 public class Main {
@@ -24,18 +27,12 @@ public class Main {
 			return;
 		}
 		if (args[0].equals("plot")) {
-			
+			plotFile(args[1]);
+			return;
 		}
 
 		if (args.length < 6) {
-			System.err.println("Run experiment: Invalid number of arguments");
-			System.err.println("Arguments: $ run <initial population size> <function evaluations> <initial bitflip probability> <problem size> <initial parameter>");
-			System.err.println("\nArguments details:");
-			System.err.println("<initial population size>: fixed population if starts varying mutation");
-			System.err.println("<function evaluations>: number of functions evaluations");
-			System.err.println("<initial bitflip probability>: fixed probability of mutation if starts varying population");
-			System.err.println("<problem size>: size of the problem");
-			System.err.println("<parameter>: 0 = mutation OR 1 = population: Decides which parameter is optimized first");
+			help();
 			return;
 		}
 		
@@ -66,7 +63,7 @@ public class Main {
 			bestSolutions[quboIndex] = new Individual();
 			lowerBestSolutions[quboIndex] = new Individual();
 			
-			// X executions for each instance
+			// Number of iterations for each instance
 			for (int executionSeed = 0; executionSeed < ITERATIONS; executionSeed++) {
 				double[] arguments = resetArguments(args);
 
@@ -204,8 +201,8 @@ public class Main {
 		
 		Plot plt = Plot.create();
 		
-		_plot(plt, bestValues, numInstances, bestLabel, bestColor);
-		_plot(plt, lowerBestValues, numInstances, lowerLabel, lowerColor);
+//		_plot(plt, bestValues, numInstances, bestLabel, bestColor);
+//		_plot(plt, lowerBestValues, numInstances, lowerLabel, lowerColor);
 		_plot(plt, avgBestValues, numInstances, avgLabel, avgColor);
 		
 		plt.legend().loc("upper right");
@@ -215,6 +212,30 @@ public class Main {
 		} catch (IOException | PythonExecutionException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	private static void plotFile(String file) {
+		try {
+		  String fileName = file;
+	      FileInputStream input = new FileInputStream(fileName);
+	      byte[] raw = input.readAllBytes();
+	      String content = new String(raw, StandardCharsets.UTF_8);
+	      input.close();
+	      
+	      JSONDeserializer<InstanceExecutionData> deserializer = new JSONDeserializer<InstanceExecutionData>(); 
+	      InstanceExecutionData session = deserializer.deserialize(content);
+	      
+	      plot(session.getGraphPopulation(), null, null, INSTANCES, "Avg Population", 
+					"Highest population", "Lowest population", "#66DD66", "#0000FF", "#FF0000", "Populations on all the instances");
+	      plot(session.getGraphMutation(), null, null, INSTANCES, "Avg Mutation", 
+					"Highest Mutation", "Lowest mutation", "#66DD66", "#0000FF", "#FF0000", "Mutations on all the instances");
+		} catch (IOException e) {
+		      e.printStackTrace();
+		}
+		catch (Exception e) {
+		      e.printStackTrace();
+		}
+		return;
 	}
 	
 	private static void saveSession(String sessionName, String sessionData) {
@@ -245,6 +266,5 @@ public class Main {
 		System.err.println("<initial bitflip probability>: fixed probability of mutation if starts varying population");
 		System.err.println("<problem size>: size of the problem");
 		System.err.println("<parameter>: 0 = mutation OR 1 = population: Decides which parameter is optimized first");
-		
 	}
 }
