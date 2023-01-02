@@ -4,6 +4,8 @@ import java.util.Random;
 
 public class Qubo implements Problem {
 
+	private final int scale = 100;
+	
 	double matrix[][];
 	int n;
 	
@@ -15,8 +17,8 @@ public class Qubo implements Problem {
 		for(int i = 0; i < n; i++) {
 			for(int j = 0; j < n; j++) {
 				int multiplier = 1;
-				if (Math.random() < 0.5) multiplier = -1;
-				this.matrix[i][j] = random.nextDouble() * multiplier;
+				if (random.nextDouble() < 0.5) multiplier = -1;
+				this.matrix[i][j] = random.nextDouble() * multiplier * scale;
 			}
 		}
 	}

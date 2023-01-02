@@ -16,8 +16,20 @@ import flexjson.JSONSerializer;
 
 public class Main {
 
-	private static final int ITERATIONS = 1;
-	private static final int INSTANCES = 100;
+	/**
+	 * Execution parameters
+	 */
+	private static final int LOWER_BOUND_POPULATION = 5;
+	private static final int UPPER_BOUND_POPULATION = 50;
+	private static final int INCREMENT_POPULATION = 1;
+
+	private static final double LOWER_BOUND_MUTATION = 0.015;
+	private static final double UPPER_BOUND_MUTATION = 0.02;
+	private static final double INCREMENT_MUTATION = 0.001;
+
+	
+	private static final int NUMBER_ITERATIONS = 30;
+	private static final int QUBO_INSTANCES = 25;
 	
 	private static final boolean saveResults = true;
 	
@@ -36,75 +48,80 @@ public class Main {
 			return;
 		}
 		
-		double[] avgPopulations = new double[INSTANCES];
-		double[] avgMutations = new double[INSTANCES];
-		double[] bestPopulations = new double[INSTANCES];
-		double[] lowerBestPopulations = new double[INSTANCES];
-		double[] bestMutations = new double[INSTANCES];
-		double[] lowerBestMutations = new double[INSTANCES];
+		double[] avgPopulations = new double[QUBO_INSTANCES];
+		double[] avgMutations = new double[QUBO_INSTANCES];
+		double[] avgFitness = new double[QUBO_INSTANCES];
+		double[] bestPopulations = new double[QUBO_INSTANCES];
+		double[] bestMutations = new double[QUBO_INSTANCES];
 				
-		Individual[] bestSolutions = new Individual[INSTANCES];
-		Individual[] lowerBestSolutions = new Individual[INSTANCES];
+		Individual[] bestSolutions = new Individual[QUBO_INSTANCES];
 		
 		int n = Integer.parseInt(args[4]);
 		int parameter = Integer.parseInt(args[5]);
 		
 		// QUBO instances
-		for (int quboIndex = 0; quboIndex < INSTANCES; quboIndex++) {
+		for (int quboIndex = 0; quboIndex < QUBO_INSTANCES; quboIndex++) {
 			long quboSeed = System.currentTimeMillis() * quboIndex;
 			Qubo problem = new Qubo(n, quboSeed);
 
 			double accumulatedMutationRate = 0, standardDeviationMutationRate = 0;
 			double accumulatedPopulation = 0, standardDeviationPopulation = 0;
+			double accumulatedFitness = 0, standardDeviationFitness = 0;
 			
-			double[] historyMutation = new double[ITERATIONS];
-			double[] historyPopulation = new double[ITERATIONS];
+			double[] historyMutation = new double[NUMBER_ITERATIONS];
+			double[] historyPopulation = new double[NUMBER_ITERATIONS];
+			double[] historyFitness = new double[NUMBER_ITERATIONS];
 			
 			bestSolutions[quboIndex] = new Individual();
-			lowerBestSolutions[quboIndex] = new Individual();
 			
 			// Number of iterations for each instance
-			for (int executionSeed = 0; executionSeed < ITERATIONS; executionSeed++) {
+			for (int executionSeed = 0; executionSeed < NUMBER_ITERATIONS; executionSeed++) {
 				double[] arguments = resetArguments(args);
 
-				
 				ExperimentResult result = runExperiment(problem, arguments, executionSeed, parameter);
 				double[] parametersFromExperiment = result.getBestParameters();
 				
 				historyMutation[executionSeed] = parametersFromExperiment[0];
 				historyPopulation[executionSeed] = parametersFromExperiment[1];
+				historyFitness[executionSeed] = result.getSolution().getFitness();
 				if (bestSolutions[quboIndex].getFitness() < result.getSolution().getFitness()) {
 					bestSolutions[quboIndex] = result.getSolution();
 					bestPopulations[quboIndex] = parametersFromExperiment[1];
 					bestMutations[quboIndex] = parametersFromExperiment[0];
 				}
-				if (result.getSolution().getFitness() < lowerBestSolutions[quboIndex].getFitness()) {
-					lowerBestSolutions[quboIndex] = result.getSolution();
-					lowerBestPopulations[quboIndex] = parametersFromExperiment[1];
-					lowerBestMutations[quboIndex] = parametersFromExperiment[0];
-				}
 
 				accumulatedMutationRate += parametersFromExperiment[0];
 				accumulatedPopulation += parametersFromExperiment[1];
+				accumulatedFitness += result.getSolution().getFitness();
 			}
 			
-			avgMutations[quboIndex] = accumulatedMutationRate / ITERATIONS;
-			avgPopulations[quboIndex] = accumulatedPopulation / ITERATIONS;
+			avgMutations[quboIndex] = accumulatedMutationRate / NUMBER_ITERATIONS;
+			avgPopulations[quboIndex] = accumulatedPopulation / NUMBER_ITERATIONS;
+			avgFitness[quboIndex] = accumulatedFitness / NUMBER_ITERATIONS;
 			
-			for (int i = 0; i < ITERATIONS; i++) {
+			for (int i = 0; i < NUMBER_ITERATIONS; i++) {
 				standardDeviationMutationRate += Math.pow(historyMutation[i] - avgMutations[quboIndex], 2);
 				standardDeviationPopulation += Math.pow(historyPopulation[i] - avgPopulations[quboIndex], 2);
+				standardDeviationFitness += Math.pow(historyFitness[i] - avgFitness[quboIndex], 2);
 			}
 			
-			standardDeviationMutationRate = Math.sqrt(standardDeviationMutationRate / ITERATIONS);
-			standardDeviationPopulation = Math.sqrt(standardDeviationPopulation / ITERATIONS);
+			standardDeviationMutationRate = Math.sqrt(standardDeviationMutationRate / NUMBER_ITERATIONS);
+			standardDeviationPopulation = Math.sqrt(standardDeviationPopulation / NUMBER_ITERATIONS);
+			standardDeviationFitness = Math.sqrt(standardDeviationFitness / NUMBER_ITERATIONS);
 					
-			System.out.println("Instance QUBO[" + quboIndex + "] after " + ITERATIONS +  " executions.");
+			System.out.println("Instance QUBO[" + quboIndex + "] after " + NUMBER_ITERATIONS +  " executions.");
+			System.out.println("....Varying " + (parameter == 0 ? "mutation " : "population "));
+			System.out.println("Average fitness = " + avgFitness[quboIndex]);
 			System.out.println("Average optimal mutation rate = " + avgMutations[quboIndex]);
 			System.out.println("Average optimal population size = " + avgPopulations[quboIndex]);
+
+			System.out.println("Standard deviation fitness = " + standardDeviationFitness);
 			System.out.println("Standard deviation mutation rate = " + standardDeviationMutationRate);
 			System.out.println("Standard deviation population size = " + standardDeviationPopulation);
-			System.out.println("Solution: " + bestSolutions[quboIndex]);
+			
+			System.out.println("Best optimal population size = " + bestPopulations[quboIndex]);
+			System.out.println("Best optimal mutation rate = " + bestMutations[quboIndex]);
+			System.out.println("Best Solution: " + bestSolutions[quboIndex]);
 			System.out.println();
 		}
 		
@@ -116,10 +133,9 @@ public class Main {
 		    saveSession("quboExperiment",jsonString);
 		}
 	    
-		plot(avgPopulations, bestPopulations, lowerBestPopulations, INSTANCES, "Avg Population", 
-				"Highest population", "Lowest population", "#66DD66", "#0000FF", "#FF0000", "Populations on all the instances");
-		plot(avgMutations, bestMutations, lowerBestMutations, INSTANCES, "Avg Mutation", 
-				"Highest mutation", "Lowest mutation", "#66DD66", "#0000FF", "#FF0000", "Mutations on all the instances");
+		plot(avgFitness, QUBO_INSTANCES, "Avg Fitness","#66DD66", "Fitness on all the instances");
+		plot(avgPopulations, QUBO_INSTANCES, "Avg Population", "#66DD66", "Populations on all the instances");
+		plot(avgMutations, QUBO_INSTANCES, "Avg Mutation","#66DD66", "Mutations on all the instances");
 	}
 	
 	private static ExperimentResult runExperiment(Problem problem, double[] arguments, long seed, int parameter){
@@ -158,7 +174,7 @@ public class Main {
 	private static ExperimentResult runMutationExperiment(Problem problem, double[] arguments, long seed) {
 		// arguments[0] is fixed population
 		Experiment experimentMutation = 
-				new Experiment("mutation", "population", 0.1, 0.9, 0.05, 2, arguments[0], seed);
+				new Experiment("mutation", "population", LOWER_BOUND_MUTATION, UPPER_BOUND_MUTATION, INCREMENT_MUTATION, 2, arguments[0], seed);
 		return experimentMutation.Run(problem, arguments);
 	}
 	
@@ -169,7 +185,7 @@ public class Main {
 	private static ExperimentResult runPopulationExperiment(Problem problem, double[] arguments, long seed) {
 		// arguments[2] is fixed mutation
 		Experiment experimentPopulation = 
-				new Experiment("population", "mutation", 10, 10000, 100, 0, arguments[2], seed);
+				new Experiment("population", "mutation", LOWER_BOUND_POPULATION, UPPER_BOUND_POPULATION, INCREMENT_POPULATION, 0, arguments[2], seed);
 		return experimentPopulation.Run(problem, arguments);
 	}
 	
@@ -192,17 +208,13 @@ public class Main {
 	}
 	
 	private static void plot(double[] avgBestValues,
-			double[] bestValues,
-			double[] lowerBestValues,
 			int numInstances,
-			String avgLabel, String bestLabel, String lowerLabel,
-			String avgColor, String bestColor, String lowerColor,
+			String avgLabel,
+			String avgColor,
 			String title) {
 		
 		Plot plt = Plot.create();
 		
-//		_plot(plt, bestValues, numInstances, bestLabel, bestColor);
-//		_plot(plt, lowerBestValues, numInstances, lowerLabel, lowerColor);
 		_plot(plt, avgBestValues, numInstances, avgLabel, avgColor);
 		
 		plt.legend().loc("upper right");
@@ -225,10 +237,10 @@ public class Main {
 	      JSONDeserializer<InstanceExecutionData> deserializer = new JSONDeserializer<InstanceExecutionData>(); 
 	      InstanceExecutionData session = deserializer.deserialize(content);
 	      
-	      plot(session.getGraphPopulation(), null, null, INSTANCES, "Avg Population", 
-					"Highest population", "Lowest population", "#66DD66", "#0000FF", "#FF0000", "Populations on all the instances");
-	      plot(session.getGraphMutation(), null, null, INSTANCES, "Avg Mutation", 
-					"Highest Mutation", "Lowest mutation", "#66DD66", "#0000FF", "#FF0000", "Mutations on all the instances");
+	      plot(session.getGraphPopulation(), QUBO_INSTANCES, "Avg Population", 
+					  "#66DD66", "Populations on all the instances");
+	      plot(session.getGraphMutation(), QUBO_INSTANCES, "Avg Mutation", 
+					 "#66DD66", "Mutations on all the instances");
 		} catch (IOException e) {
 		      e.printStackTrace();
 		}

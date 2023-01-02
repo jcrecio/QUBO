@@ -3,6 +3,7 @@ package es.uma.informatica.misia.ae.simpleea;
 public class InstanceExecutionData {
 	double[] graphPopulation;
 	double[] graphMutation;
+	
 	Individual[] solutions;
 	double[] lowerBestPopulation;
 	double[] lowerBestMutation;
